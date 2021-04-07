@@ -12,11 +12,61 @@ def get_genre_urls():
     url_dict = {}
     for genre in genre_links:
         url = genre.find('a', href=True)
-        url_dict[url.get_text()] = url['href']
+        genre_key = url.get_text().replace("\n", "").strip()
+        url_dict[genre_key] = "https://www.imdb.com" + url['href'] + "&pf_rd_m=A2FGELUUNOQJNL&pf_rd_p=5aab685f-35eb-40f3-95f7-c53f09d542c3&pf_rd_r=BFTF5NMZ7QJX327P95J6&pf_rd_s=right-6&pf_rd_t=15506&pf_rd_i=top&ref_=chttp_gnr_1"
+    for key, value in url_dict.items():
+        print(key + " " + value)
     return url_dict
 
+test = get_genre_urls()
 
 
+
+
+def get_page_data(input_url):
+    page = requests.get(url=input_url)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    movie_split = soup.find_all(class_='lister-item-content')
+    for movie in movie_split:
+        print(movie)
+
+
+get_page_data(test['Action'])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#pd_data = get_all_genres()
+#print(pd_data)
+# ## returns the lists of data for the first 50
+# first_50 = get_page_data("https://www.imdb.com/search/title/?genres=western&genres=Adventure&explore=title_type,genres&ref_=adv_explore_rhs")
+# ## returns the lists of data for the second 50
+# second_50 = get_page_data("https://www.imdb.com/search/title/?genres=western,adventure&start=51&explore=title_type,genres&ref_=adv_nxt")
+#
+# # Combines them both into a dictionary containing all 100
+# data_dict = {'Chart Number': first_50[0]+second_50[0],
+#                     'Title': first_50[1]+second_50[1],
+#                     'Release Date': first_50[2]+second_50[2],
+#                     'Duration(min)': first_50[3]+second_50[3],
+#                     'Genre': first_50[4]+second_50[4],
+#                     'Rating': first_50[5]+second_50[5],
+#
+#                     'Director': first_50[6]+second_50[6],
+#                     'Actors': first_50[7]+second_50[7]}
+
+# creates dataframe from the dictionary
+# df = pd.DataFrame(data_dict)
 # def get_page_data(input_url):
 #     # request url
 #     page = requests.get(url=input_url)
@@ -127,33 +177,3 @@ def get_genre_urls():
 #     #[chart_list, titles_names, release_year, movie_durs, genre, ratings, directors, actors]
 #     print(data_dict)
 #     return data_dict
-
-def get_all_genres():
-    genre_url_dict = get_genre_urls()
-    all_genres = []
-    for url in genre_url_dict.values():
-        total_url = "https://www.imdb.com" + url[0:-1]
-        print(total_url)
-        all_genres.append(get_page_data(total_url))
-    return all_genres
-
-pd_data = get_all_genres()
-print(pd_data)
-# ## returns the lists of data for the first 50
-# first_50 = get_page_data("https://www.imdb.com/search/title/?genres=western&genres=Adventure&explore=title_type,genres&ref_=adv_explore_rhs")
-# ## returns the lists of data for the second 50
-# second_50 = get_page_data("https://www.imdb.com/search/title/?genres=western,adventure&start=51&explore=title_type,genres&ref_=adv_nxt")
-#
-# # Combines them both into a dictionary containing all 100
-# data_dict = {'Chart Number': first_50[0]+second_50[0],
-#                     'Title': first_50[1]+second_50[1],
-#                     'Release Date': first_50[2]+second_50[2],
-#                     'Duration(min)': first_50[3]+second_50[3],
-#                     'Genre': first_50[4]+second_50[4],
-#                     'Rating': first_50[5]+second_50[5],
-#
-#                     'Director': first_50[6]+second_50[6],
-#                     'Actors': first_50[7]+second_50[7]}
-
-# creates dataframe from the dictionary
-# df = pd.DataFrame(data_dict)
