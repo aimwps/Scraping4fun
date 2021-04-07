@@ -4,6 +4,17 @@ from bs4 import BeautifulSoup
 from dateutil.parser import parse
 import matplotlib.pyplot as plt
 
+def get_genre_urls():
+    page = requests.get(url="https://www.imdb.com/chart/top/?ref_=nv_mv_250")
+    soup = BeautifulSoup(page.content, 'html.parser')
+    page_section = soup.find(id="sidebar")
+    genre_links = page_section.find_all('li', class_="subnav_item_main")
+    url_dict = {}
+    for genre in genre_links:
+        url = genre.find('a', href=True)
+        url_dict[url.get_text()] = url['href']
+    return url_dict
+
 
 
 def get_page_data(input_url):
@@ -20,6 +31,7 @@ def get_page_data(input_url):
 
     #get rating -- WORKS
     ratings_container = soup.find_all(class_='lister-item-content')
+    print(len(ratings_container))
     ratings = []
     for movie in ratings_container:
         rating_div = movie.find(class_="inline-block ratings-imdb-rating")
@@ -82,7 +94,6 @@ def get_page_data(input_url):
     movie_durs =[] ###this one
     #print(len(dur_movies))
     for movie in dur_movies:
-
         duration_span = movie.find(class_="runtime")
         if duration_span != None:
             get_text = duration_span.get_text()
@@ -94,35 +105,55 @@ def get_page_data(input_url):
 
     #filming date -- WORKS
     film_release = soup.find_all(class_='lister-item-content')
-    release_year =  []
+    release_year = []
     for movie in film_release:
         year_div = movie.find(class_='lister-item-year text-muted unbold')
         if year_div != None and len(year_div.get_text()) > 4:
             get_ints = [i for i in year_div.get_text() if i.isnumeric()]
-            #print(get_ints)
             year = "".join(get_ints[0:4])
             release_year.append(year)
         else:
             release_year.append("NaN")
 
+    data_dict = {"chart_place": chart_list,
+                 "title": titles_names,
+                 "release_year": release_year,
+                 "duration": movie_durs,
+                 "genre": genre,
+                 "ratings": ratings,
+                 "director": directors,
+                 "starring": actors,
+                 }
+    #[chart_list, titles_names, release_year, movie_durs, genre, ratings, directors, actors]
+    print(data_dict)
+    return data_dict
 
+def get_all_genres():
+    genre_url_dict = get_genre_urls()
+    all_genres = []
+    for url in genre_url_dict.values():
+        total_url = "https://www.imdb.com" + url[0:-1]
+        print(total_url)
+        all_genres.append(get_page_data(total_url))
+    return all_genres
 
-    return [chart_list,titles_names, release_year, movie_durs, genre, ratings,directors,actors]
-
-## returns the lists of data for the first 50
-first_50 = get_page_data("https://www.imdb.com/search/title/?genres=western&genres=Adventure&explore=title_type,genres&ref_=adv_explore_rhs")
-## returns the lists of data for the second 50
-second_50 = get_page_data("https://www.imdb.com/search/title/?genres=western,adventure&start=51&explore=title_type,genres&ref_=adv_nxt")
-
-# Combines them both into a dictionary containing all 100
-data_dict = {'Chart Number': first_50[0]+second_50[0],
-                    'Title': first_50[1]+second_50[1],
-                    'Release Date': first_50[2]+second_50[2],
-                    'Duration(min)': first_50[3]+second_50[3],
-                    'Genre': first_50[4]+second_50[4],
-                    'Rating': first_50[5]+second_50[5],
-                    'Director': first_50[6]+second_50[6],
-                    'Actors': first_50[7]+second_50[7]}
+pd_data = get_all_genres()
+print(pd_data)
+# ## returns the lists of data for the first 50
+# first_50 = get_page_data("https://www.imdb.com/search/title/?genres=western&genres=Adventure&explore=title_type,genres&ref_=adv_explore_rhs")
+# ## returns the lists of data for the second 50
+# second_50 = get_page_data("https://www.imdb.com/search/title/?genres=western,adventure&start=51&explore=title_type,genres&ref_=adv_nxt")
+#
+# # Combines them both into a dictionary containing all 100
+# data_dict = {'Chart Number': first_50[0]+second_50[0],
+#                     'Title': first_50[1]+second_50[1],
+#                     'Release Date': first_50[2]+second_50[2],
+#                     'Duration(min)': first_50[3]+second_50[3],
+#                     'Genre': first_50[4]+second_50[4],
+#                     'Rating': first_50[5]+second_50[5],
+#
+#                     'Director': first_50[6]+second_50[6],
+#                     'Actors': first_50[7]+second_50[7]}
 
 # creates dataframe from the dictionary
-df = pd.DataFrame(data_dict)
+# df = pd.DataFrame(data_dict)
