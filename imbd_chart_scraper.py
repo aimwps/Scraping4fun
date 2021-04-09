@@ -23,13 +23,16 @@ def get_genre_urls():
 
 
 
-def get_page_data(input_url):
-    page = requests.get(url=input_url)
+def get_page_data(genre_url):
+    page = requests.get(url=genre_url[1])
     soup = BeautifulSoup(page.content, 'html.parser')
     movie_split = soup.find_all(class_='lister-item-content')
 
-    # Genres
-    genres = [movie.find('span', class_="genre").get_text().replace("\n", "").strip() for movie in movie_split]
+    # master genre from input
+    genre = [genre_url[0] for i in range(50)]
+
+    # sub_Genres
+    sub_genres = [movie.find('span', class_="genre").get_text().replace("\n", "").strip() for movie in movie_split]
 
     # Get the rank by convert to an integer the findings of the rank located in the span and class. Take the text exluding the last as it is punctuation.
     movie_ranks = [int(movie.find('span', class_="lister-item-index unbold text-primary").get_text()[:-1]) for movie in movie_split]
@@ -54,7 +57,8 @@ def get_page_data(input_url):
     actors =[", ".join([star for star in movie[1:]]) for movie in stars_by_movie]
 
     # Return data from page
-    data_dict = {"genre": genres,
+    data_dict = {"genre": [genre_url[0] for i in range(50)],
+                 "sub-genre": sub_genres,
                  "genre_rank": movie_ranks,
                  "title": movie_titles,
                  "release_year": release_date,
@@ -63,7 +67,7 @@ def get_page_data(input_url):
                  "director": directors,
                  "starring": actors,
                  }
-    print(f"{genres[0].strip().zfill(50)}: genres:{len(genres)}, movie_ranks:{len(movie_ranks)}, movie_titles:{len(movie_titles)}, release_date:{len(release_date)}, movie_durs:{len(movie_durs)}, movie_rating:{len(movie_rating)},  directors{len(directors)}, actors:{len(actors)}")
+    print(f"{genre[0].strip().zfill(30)}: main-genre:{len(genre)}, sub-genres:{len(sub_genres)}, movie_ranks:{len(movie_ranks)}, movie_titles:{len(movie_titles)}, release_date:{len(release_date)}, movie_durs:{len(movie_durs)}, movie_rating:{len(movie_rating)},  directors{len(directors)}, actors:{len(actors)}")
     return data_dict
 
 
@@ -102,7 +106,7 @@ def gather_check_combine_web_data():
     accepted_genres = []
     rejected_genres = []
     for genre, url in get_urls.items():
-        movie_data_dict = get_page_data(url)
+        movie_data_dict = get_page_data((genre,url))
         check_data = data_length_validator(movie_data_dict)
         if check_data[0] == True:
             accepted_genres.append(movie_data_dict)
